@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Weather Chatbot</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #00c6ff, #0072ff);
+      color: white;
+      padding: 2rem;
+      text-align: center;
+    }
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 1rem;
+      padding: 2rem;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+    input[type="text"] {
+      width: 80%;
+      padding: 0.6rem;
+      font-size: 1rem;
+      margin: 0.5rem 0;
+      border-radius: 0.5rem;
+      border: none;
+    }
+    button {
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      margin-top: 0.5rem;
+      border-radius: 0.5rem;
+      background-color: #fff;
+      color: #0072ff;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .response {
+      margin-top: 1.5rem;
+      text-align: left;
+      background: rgba(255, 255, 255, 0.15);
+      padding: 1rem;
+      border-radius: 0.5rem;
+      min-height: 30px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Weather Chatbot</h1>
+  <div class="container">
+    <input type="text" id="cityInput" placeholder="Enter city name" />
+    <br />
+    <button onclick="getWeather()">Get Weather</button>
+    
+    <div id="weatherResponse" class="response"></div>
+
+    <input type="text" id="questionInput" placeholder="Ask something like 'Can I go outside?'" />
+    <br />
+    <button onclick="askAI()">Ask AI</button>
+
+    <div id="aiResponse" class="response"></div>
+  </div>
+
+  <script>
+    let currentWeather = '';
+
+    async function getWeather() {
+      const city = document.getElementById('cityInput').value.trim();
+      if (!city) return alert("Please enter a city name.");
+
+      document.getElementById('weatherResponse').innerText = 'Loading weather...';
+
+      try {
+        const res = await fetch('/weather', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ city })
+        });
+
+        const data = await res.json();
+        currentWeather = data.weather || '';
+        document.getElementById('weatherResponse').innerText = currentWeather;
+      } catch (err) {
+        document.getElementById('weatherResponse').innerText = 'Failed to fetch weather.';
+      }
+    }
+
+    async function askAI() {
+      const question = document.getElementById('questionInput').value.trim();
+      if (!question) return alert("Please ask a question.");
+
+      document.getElementById('aiResponse').innerText = 'Thinking...';
+
+      try {
+        const res = await fetch('/ask', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            weather: currentWeather,
+            question: question
+          })
+        });
+
+        const data = await res.json();
+        const answer = data.answer?.trim();
+        document.getElementById('aiResponse').innerText = answer || 'No response from AI.';
+      } catch (err) {
+        document.getElementById('aiResponse').innerText = 'Error getting AI response.';
+      }
+    }
+  </script>
+</body>
+</html>
